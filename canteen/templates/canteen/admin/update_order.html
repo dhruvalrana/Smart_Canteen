@@ -1,0 +1,68 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}Update Order - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Update Order {{ order.order_id }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Current Status -->
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <small class="text-muted">Current Status</small>
+                            <p class="mb-0 fs-5">
+                                <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}info{% endif %} p-2">
+                                    {{ order.get_status_display|upper }}
+                                </span>
+                            </p>
+                        </div>
+
+                        <!-- New Status -->
+                        <div class="mb-4">
+                            <label class="form-label">Update Status To</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">{{ form.status.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Estimated Ready Time -->
+                        <div class="mb-4">
+                            <label class="form-label">Estimated Ready Time (Optional)</label>
+                            {{ form.estimated_ready_time }}
+                            <small class="form-text text-muted d-block">When will the order be ready for pickup?</small>
+                            {% if form.estimated_ready_time.errors %}
+                                <div class="invalid-feedback d-block">{{ form.estimated_ready_time.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Order Details -->
+                        <div class="mb-4 p-3 bg-light rounded">
+                            <h6>Order Details</h6>
+                            <p class="mb-1"><strong>Customer:</strong> {{ order.user.get_full_name|default:order.user.username }}</p>
+                            <p class="mb-1"><strong>Total Amount:</strong> ₹{{ order.total_amount }}</p>
+                            <p class="mb-1"><strong>Payment Method:</strong> {{ order.get_payment_method_display }}</p>
+                            <p class="mb-0"><strong>Created:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="bi bi-check-circle"></i> Update Order
+                            </button>
+                            <a href="{% url 'canteen:manage_orders' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

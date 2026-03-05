@@ -1,0 +1,120 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}Checkout - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Checkout</h1>
+
+    <div class="row">
+        <!-- Order Form -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Order Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        <!-- Payment Method -->
+                        <div class="mb-4">
+                            <h6>Select Payment Method</h6>
+                            <div class="row">
+                                {% for value, label in form.payment_method.field.choices %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="payment_method" id="payment_{{ value }}" value="{{ value }}" {% if forloop.first %}checked{% endif %}>
+                                            <label class="form-check-label" for="payment_{{ value }}">
+                                                {{ label }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <!-- Special Instructions -->
+                        <div class="mb-4">
+                            <label class="form-label">Special Instructions (Optional)</label>
+                            {{ form.special_instructions }}
+                            <small class="form-text text-muted d-block">
+                                Any special requests? e.g., no onions, extra spice, allergies, etc.
+                            </small>
+                        </div>
+
+                        <!-- Order Items -->
+                        <div class="mt-4">
+                            <h6>Order Items</h6>
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Price</th>
+                                            <th>Qty</th>
+                                            <th>Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in items %}
+                                            <tr>
+                                                <td>{{ item.food_item.name }}</td>
+                                                <td>₹{{ item.food_item.price }}</td>
+                                                <td>{{ item.quantity }}</td>
+                                                <td class="fw-bold">₹{{ item.get_subtotal }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="bi bi-check-circle"></i> Place Order
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div class="col-lg-4">
+            <div class="card sticky-top">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Final Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹{{ subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tax (5%):</span>
+                        <span>₹{{ tax }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span>Discount:</span>
+                        <span>-₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total Amount:</span>
+                        <span class="text-success">₹{{ total }}</span>
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <small>
+                            <i class="bi bi-info-circle"></i>
+                            Your order will be prepared fresh. Estimated time: 15-20 minutes.
+                        </small>
+                    </div>
+
+                    <a href="{% url 'canteen:cart' %}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> Back to Cart
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

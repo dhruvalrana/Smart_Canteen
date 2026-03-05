@@ -1,0 +1,66 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}Login - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-center mb-4">Login</h2>
+                    
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Email/Username -->
+                        <div class="mb-3">
+                            <label class="form-label">Email or Username</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.email.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            {{ form.password }}
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Remember Me -->
+                        <div class="mb-3 form-check">
+                            {{ form.remember_me }}
+                            <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">
+                                Remember me for 2 weeks
+                            </label>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+
+                        <!-- Links -->
+                        <div class="text-center mt-3">
+                            <a href="{% url 'canteen:password_reset_request' %}" class="text-decoration-none text-muted d-block mb-2">
+                                Forgot your password?
+                            </a>
+                            <p class="text-muted">Don't have an account? 
+                                <a href="{% url 'canteen:register' %}" class="text-decoration-none">Register here</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

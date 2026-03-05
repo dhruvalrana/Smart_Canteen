@@ -1,0 +1,203 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}Food Menu - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container-lg py-5">
+    <!-- Header Section -->
+    <div class="row align-items-center mb-5">
+        <div class="col-md-8">
+            <h1 class="fw-bold mb-2"><i class="bi bi-shop" style="color: #FF6B35;"></i> Our Menu</h1>
+            <p class="text-muted">Browse and order from our delicious selection of food items</p>
+        </div>
+    </div>
+
+    <!-- Filters Section -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <form method="GET" id="filterForm" class="d-flex">
+                <input type="text" name="search" class="form-control" placeholder="🔍 Search food items..." value="{{ search_query }}">
+                <input type="hidden" name="category" id="categoryValue" value="{{ request.GET.category }}">
+                <input type="hidden" name="sort" id="sortValue" value="{{ request.GET.sort }}">
+                <button type="submit" class="btn" style="background: #FF6B35; color: white; border: 1px solid #FF6B35;">Search</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="categoryFilter" style="border-color: #FF6B35;">
+                <option value="">📁 All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category.id == request.GET.category|add:"" %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select class="form-select" id="sortFilter" style="border-color: #FF6B35;">
+                <option value="-created_at" {% if request.GET.sort == "-created_at" or not request.GET.sort %}selected{% endif %}>⏱️ Newest First</option>
+                <option value="name" {% if request.GET.sort == "name" %}selected{% endif %}>🔤 Name (A-Z)</option>
+                <option value="price" {% if request.GET.sort == "price" %}selected{% endif %}>💰 Price (Low to High)</option>
+                <option value="-price" {% if request.GET.sort == "-price" %}selected{% endif %}>💰 Price (High to Low)</option>
+                <option value="rating" {% if request.GET.sort == "rating" %}selected{% endif %}>⭐ Top Rated</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Food Items Grid -->
+    <div class="row g-4">
+        {% for item in items %}
+            <div class="col-md-6 col-lg-3">
+                <div class="card border-0 shadow-sm h-100 food-card" style="overflow: hidden;">
+                    <!-- Image Container -->
+                    <div style="position: relative; height: 220px; overflow: hidden; background: #f0f0f0;">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" class="w-100 h-100" alt="{{ item.name }}" style="object-fit: cover;">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        <!-- Category Badge -->
+                        <span class="badge bg-danger position-absolute top-0 end-0 m-2">{{ item.category.name }}</span>
+                        
+                        <!-- Stock Status Overlay -->
+                        {% if not item.is_available %}
+                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="background: rgba(0,0,0,0.6);">
+                                <span class="badge bg-light text-dark px-3 py-2">Out of Stock</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Card Content -->
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold mb-2">{{ item.name }}</h6>
+                        <p class="card-text text-muted small mb-3">{{ item.description|truncatewords:15 }}</p>
+                        
+                        <!-- Dietary Info -->
+                        <div class="mb-3">
+                            {% if item.is_vegetarian %}<span class="badge bg-success me-1">🥗 Veg</span>{% endif %}
+                            {% if item.is_vegan %}<span class="badge bg-success me-1">🌱 Vegan</span>{% endif %}
+                            {% if item.is_gluten_free %}<span class="badge bg-info">Gluten-Free</span>{% endif %}
+                        </div>
+
+                        <!-- Price and Rating -->
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h6 mb-0 fw-bold" style="color: #FF6B35;">₹{{ item.price }}</span>
+                            <div>
+                                {% if item.average_rating %}
+                                    <small><i class="bi bi-star-fill" style="color: #FFC107;"></i> {{ item.average_rating }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="card-footer bg-white border-0 p-3">
+                        <a href="{% url 'canteen:food_detail' item.slug %}" class="btn btn-sm w-100" style="background: #FF6B35; color: white; border: none;">
+                            <i class="bi bi-eye"></i> View & Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-warning text-center py-5" role="alert">
+                    <i class="bi bi-exclamation-circle" style="font-size: 2rem;"></i>
+                    <p class="mt-3 mb-0">No items found matching your criteria. Try adjusting your filters.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1&search={{ search_query }}&category={{ request.GET.category }}&sort={{ request.GET.sort }}">
+                            <i class="bi bi-chevron-double-left"></i> First
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&category={{ request.GET.category }}&sort={{ request.GET.sort }}">
+                            <i class="bi bi-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link" style="background: #FF6B35; border-color: #FF6B35;">{{ num }}</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}&search={{ search_query }}&category={{ request.GET.category }}&sort={{ request.GET.sort }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&category={{ request.GET.category }}&sort={{ request.GET.sort }}">
+                            Next <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&search={{ search_query }}&category={{ request.GET.category }}&sort={{ request.GET.sort }}">
+                            Last <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        
+        <div class="text-center text-muted mt-3">
+            <small>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</small>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+    .food-card {
+        transition: all 0.3s ease-in-out;
+        cursor: pointer;
+    }
+
+    .food-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(255, 107, 53, 0.2) !important;
+    }
+
+    .page-item.active .page-link {
+        background: #FF6B35;
+        border-color: #FF6B35;
+    }
+
+    .page-link {
+        color: #FF6B35;
+    }
+
+    .page-link:hover {
+        color: #FF6B35;
+        background-color: #FFF5F0;
+    }
+</style>
+
+<script>
+    // Handle category filter change
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        let form = document.getElementById('filterForm');
+        document.getElementById('categoryValue').value = this.value;
+        document.getElementById('sortValue').value = document.getElementById('sortFilter').value;
+        form.submit();
+    });
+
+    // Handle sort filter change
+    document.getElementById('sortFilter').addEventListener('change', function() {
+        let form = document.getElementById('filterForm');
+        document.getElementById('sortValue').value = this.value;
+        document.getElementById('categoryValue').value = document.getElementById('categoryFilter').value;
+        form.submit();
+    });
+</script>
+{% endblock %}

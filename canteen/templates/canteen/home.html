@@ -1,0 +1,191 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}Home - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container-lg">
+    <!-- Hero Section -->
+    <div class="row align-items-center py-5" style="background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border-radius: 15px; margin-top: 20px; margin-bottom: 40px;">
+        <div class="col-md-6 text-white">
+            <h1 class="display-4 fw-bold mb-3">Welcome to SmartCanteen</h1>
+            <p class="lead mb-4">Order your favorite food items with just a few clicks and skip the long queues!</p>
+            <div class="button-group">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'canteen:food_list' %}" class="btn btn-light btn-lg me-2 mb-2">
+                        <i class="bi bi-shop"></i> Browse Menu
+                    </a>
+                    <a href="{% url 'canteen:order_list' %}" class="btn btn-outline-light btn-lg mb-2">
+                        <i class="bi bi-clock-history"></i> Track Orders
+                    </a>
+                {% else %}
+                    <a href="{% url 'canteen:food_list' %}" class="btn btn-light btn-lg me-2 mb-2">
+                        <i class="bi bi-shop"></i> Browse Menu
+                    </a>
+                    <a href="{% url 'canteen:register' %}" class="btn btn-outline-light btn-lg mb-2">
+                        <i class="bi bi-person-plus"></i> Register Now
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-md-6 text-center">
+            <i class="bi bi-cup-hot" style="font-size: 150px; color: rgba(255,255,255,0.2);"></i>
+        </div>
+    </div>
+
+    <!-- Announcements -->
+    {% if announcements %}
+        <div class="row mb-5">
+            <div class="col-12">
+                <h3 class="mb-3"><i class="bi bi-megaphone" style="color: #FF6B35;"></i> Announcements</h3>
+                <div class="row">
+                    {% for announcement in announcements %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card border-0 shadow-sm h-100" style="border-left: 4px solid #FF6B35;">
+                                <div class="card-body">
+                                    <h6 class="card-title" style="color: #FF6B35;">{{ announcement.title }}</h6>
+                                    <p class="card-text text-muted small">{{ announcement.message|truncatewords:20 }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Featured Items Section -->
+    <div class="row">
+        <div class="col-12 mb-5">
+            <h2 class="mb-1"><i class="bi bi-star-fill" style="color: #FF6B35;"></i> Featured Items</h2>
+            <p class="text-muted">Explore our most popular food items</p>
+        </div>
+    </div>
+
+    <div class="row">
+        {% for item in featured_items %}
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="card border-0 shadow-sm h-100 food-card overflow-hidden">
+                    <!-- Image Section -->
+                    <div style="position: relative; height: 200px; overflow: hidden; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" class="w-100 h-100" alt="{{ item.name }}" style="object-fit: cover;">
+                        {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100">
+                                <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        <!-- Category Badge -->
+                        <span class="badge bg-danger position-absolute top-0 end-0 m-2">{{ item.category.name }}</span>
+                    </div>
+
+                    <!-- Content -->
+                    <div class="card-body">
+                        <h6 class="card-title mb-2">{{ item.name }}</h6>
+                        <p class="card-text text-muted small mb-3">{{ item.description|truncatewords:12 }}</p>
+                        
+                        <!-- Dietary Badges -->
+                        <div class="mb-3">
+                            {% if item.is_vegetarian %}<span class="badge bg-success me-1">🥗 Veg</span>{% endif %}
+                            {% if item.is_vegan %}<span class="badge bg-success me-1">🌱 Vegan</span>{% endif %}
+                            {% if item.is_gluten_free %}<span class="badge bg-info">Gluten-Free</span>{% endif %}
+                        </div>
+
+                        <!-- Price and Status -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="h5 mb-0" style="color: #FF6B35;">₹{{ item.price }}</span>
+                            {% if item.is_available %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-check-circle"></i> Available
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">Out of Stock</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="card-footer bg-white border-0 p-3">
+                        <a href="{% url 'canteen:food_detail' item.slug %}" class="btn btn-sm w-100" style="background: #FF6B35; color: white; border: none;">
+                            <i class="bi bi-arrow-right"></i> View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5" role="alert">
+                    <i class="bi bi-info-circle" style="font-size: 2rem;"></i>
+                    <p class="mt-3">No featured items available at the moment. Please check back soon!</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Call to Action Section -->
+    <div class="row mt-5 mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow" style="background: linear-gradient(135deg, #f99f39 0%, #ff3c3c 100%); color: white; border-radius: 15px;">
+                <div class="card-body p-5 text-center">
+                    <h3 class="mb-3">Ready to Order?</h3>
+                    <p class="lead mb-4">Browse our complete menu and enjoy delicious food from the comfort of your dorm!</p>
+                    <a href="{% url 'canteen:food_list' %}" class="btn btn-light btn-lg">
+                        <i class="bi bi-arrow-right"></i> View Full Menu
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mb-5">
+        <div class="col-12 mb-4">
+            <h3 class="text-center mb-4">Why Choose SmartCanteen?</h3>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="text-center">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 2rem;">
+                    <i class="bi bi-lightning-charge"></i>
+                </div>
+                <h5>Fast Ordering</h5>
+                <p class="text-muted small">Place your order in seconds and skip the queue</p>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="text-center">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #000080 0%, #0047AB 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 2rem;">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <h5>Real-time Tracking</h5>
+                <p class="text-muted small">Monitor your order status from preparation to pickup</p>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="text-center">
+                <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #1BB254 0%, #2DD47F 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 2rem;">
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <h5>Quality & Reviews</h5>
+                <p class="text-muted small">Read reviews and ratings from other students</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .food-card {
+        transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    }
+
+    .food-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .btn-close:focus {
+        box-shadow: none;
+    }
+</style>
+{% endblock %}

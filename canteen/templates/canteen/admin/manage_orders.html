@@ -1,0 +1,96 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}Manage Orders - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container-fluid my-4">
+    <h1 class="mb-4"><i class="bi bi-bag-check"></i> Manage Orders</h1>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <a href="?status=" class="btn btn-outline-primary">All</a>
+                <a href="?status=pending" class="btn btn-outline-warning">Pending</a>
+                <a href="?status=confirmed" class="btn btn-outline-info">Confirmed</a>
+                <a href="?status=preparing" class="btn btn-outline-info">Preparing</a>
+                <a href="?status=ready" class="btn btn-outline-success">Ready</a>
+                <a href="?status=completed" class="btn btn-outline-success">Completed</a>
+                <a href="?status=cancelled" class="btn btn-outline-danger">Cancelled</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Items</th>
+                        <th>Amount</th>
+                        <th>Payment</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td><strong>{{ order.order_id }}</strong></td>
+                            <td>
+                                {{ order.user.get_full_name|default:order.user.username }}
+                                <br>
+                                <small class="text-muted">{{ order.user.email }}</small>
+                            </td>
+                            <td>
+                                {{ order.items.count }} item{% if order.items.count != 1 %}s{% endif %}
+                            </td>
+                            <td class="fw-bold">₹{{ order.total_amount }}</td>
+                            <td>{{ order.get_payment_method_display }}</td>
+                            <td>
+                                <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'completed' %}success{% elif order.status == 'cancelled' %}danger{% else %}info{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td><small>{{ order.created_at|date:"M d, H:i" }}</small></td>
+                            <td>
+                                <a href="{% url 'canteen:admin_order_detail' order.order_id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{% url 'canteen:update_order_status' order.order_id %}" class="btn btn-sm btn-outline-warning">Update</a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No orders found</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page=1">First</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                    <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

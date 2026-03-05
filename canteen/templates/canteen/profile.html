@@ -1,0 +1,201 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}My Profile - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+
+        <!-- Left: Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm border-0 text-center p-4">
+                <div class="mb-3">
+                    <div class="rounded-circle bg-warning d-inline-flex align-items-center justify-content-center"
+                         style="width:90px;height:90px;">
+                        <i class="bi bi-person-fill" style="font-size:3rem;color:#fff;"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold mb-0">{{ user.get_full_name|default:user.username }}</h5>
+                <p class="text-muted small mb-2">{{ user.email }}</p>
+                {% if canteen_profile.phone_number %}
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-telephone"></i> {{ canteen_profile.phone_number }}
+                    </p>
+                {% endif %}
+                <span class="badge {% if canteen_profile.is_verified %}bg-success{% else %}bg-secondary{% endif %} mb-3">
+                    {% if canteen_profile.is_verified %}Verified{% else %}Unverified{% endif %}
+                </span>
+                <hr>
+                <div class="row text-center g-2">
+                    <div class="col-4">
+                        <div class="fw-bold fs-5" style="color:#FF6B35;">{{ total_orders }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">Orders</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold fs-5 text-success">{{ completed_orders }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">Completed</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold fs-5 text-primary">₹{{ total_spent|floatformat:0 }}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">Spent</div>
+                    </div>
+                </div>
+                <hr>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-calendar3"></i>
+                    Member since {{ canteen_profile.registration_date|date:"M Y" }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Right: Edit Form + Recent Orders -->
+        <div class="col-lg-8">
+
+            <!-- Edit Profile -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-pencil-square"></i> Edit Profile</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">First Name *</label>
+                                {{ form.first_name }}
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.first_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Last Name</label>
+                                {{ form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <div class="input-group">
+                                <input type="email" class="form-control" value="{{ user.email }}" disabled>
+                                <a href="#change-email-card" class="btn btn-outline-secondary"
+                                   onclick="document.getElementById('change-email-card').scrollIntoView({behavior:'smooth'}); return false;">
+                                    <i class="bi bi-pencil"></i> Change
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Phone Number</label>
+                            {{ form.phone_number }}
+                            {% if form.phone_number.errors %}
+                                <div class="invalid-feedback d-block">{{ form.phone_number.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-check-circle"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Email -->
+            <div class="card shadow-sm border-0 mb-4" id="change-email-card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="bi bi-envelope-arrow-up"></i> Change Email</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted small mb-3">
+                        Enter a new email address below. We'll send a 6-digit OTP to the new address to confirm the change.
+                    </p>
+                    <form method="post" action="{% url 'canteen:change_email_request' %}" novalidate
+                          id="change-email-form">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">New Email Address</label>
+                            {{ email_form.new_email }}
+                            {% if email_form.new_email.errors %}
+                                <div class="invalid-feedback d-block">{{ email_form.new_email.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <button type="submit" class="btn btn-warning px-4">
+                            <i class="bi bi-send"></i> Send OTP
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> Recent Orders</h5>
+                    <a href="{% url 'canteen:order_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_orders %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Items</th>
+                                        <th>Total</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for order in recent_orders %}
+                                        <tr>
+                                            <td class="fw-semibold">{{ order.order_id }}</td>
+                                            <td class="text-muted small">{{ order.created_at|date:"d M Y" }}</td>
+                                            <td>{{ order.items.count }}</td>
+                                            <td class="fw-semibold">₹{{ order.total_amount }}</td>
+                                            <td>
+                                                <span class="badge
+                                                    {% if order.status == 'completed' %}bg-success
+                                                    {% elif order.status == 'cancelled' %}bg-danger
+                                                    {% elif order.status == 'pending' %}bg-warning text-dark
+                                                    {% else %}bg-info text-dark{% endif %}">
+                                                    {{ order.get_status_display }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'canteen:order_detail' order.order_id %}"
+                                                   class="btn btn-sm btn-outline-secondary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-bag-x" style="font-size:2.5rem;"></i>
+                            <p class="mt-2 mb-0">No orders yet.</p>
+                            <a href="{% url 'canteen:food_list' %}" class="btn btn-sm btn-primary mt-3">
+                                <i class="bi bi-shop"></i> Browse Menu
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% if show_email_modal %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var card = document.getElementById('change-email-card');
+        if (card) card.scrollIntoView({ behavior: 'smooth' });
+    });
+</script>
+{% endif %}
+
+{% endblock %}

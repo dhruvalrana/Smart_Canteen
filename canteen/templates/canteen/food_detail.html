@@ -1,0 +1,188 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}{{ food_item.name }} - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-5 mb-4">
+            {% if food_item.image %}
+                <img src="{{ food_item.image.url }}" class="img-fluid rounded shadow" alt="{{ food_item.name }}">
+            {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 400px;">
+                    <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Details -->
+        <div class="col-md-7">
+            <!-- Title and Category -->
+            <span class="badge bg-info mb-2">{{ food_item.category.name }}</span>
+            <h1 class="mb-3">{{ food_item.name }}</h1>
+
+            <!-- Rating -->
+            {% if avg_rating %}
+                <div class="mb-3">
+                    <div class="rating">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= avg_rating %}
+                                <i class="bi bi-star-fill text-warning"></i>
+                            {% elif forloop.counter < avg_rating|add:1 %}
+                                <i class="bi bi-star-half text-warning"></i>
+                            {% else %}
+                                <i class="bi bi-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <small class="text-muted">({{ avg_rating|floatformat:1 }} / 5 from {{ review_count }} reviews)</small>
+                </div>
+            {% endif %}
+
+            <!-- Price and Availability -->
+            <div class="mb-3">
+                <h3 class="text-primary mb-2">₹{{ food_item.price }}</h3>
+                {% if food_item.is_available %}
+                    <span class="badge bg-success p-2">Available - {{ food_item.quantity_available }} in stock</span>
+                {% else %}
+                    <span class="badge bg-danger p-2">Out of Stock</span>
+                {% endif %}
+            </div>
+
+            <!-- Dietary Information -->
+            {% if food_item.is_vegetarian or food_item.is_vegan or food_item.is_gluten_free %}
+                <div class="mb-3">
+                    <h6>Dietary Information:</h6>
+                    <div>
+                        {% if food_item.is_vegetarian %}<span class="badge bg-success">Vegetarian</span>{% endif %}
+                        {% if food_item.is_vegan %}<span class="badge bg-success">Vegan</span>{% endif %}
+                        {% if food_item.is_gluten_free %}<span class="badge bg-info">Gluten-Free</span>{% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Calories -->
+            {% if food_item.calories %}
+                <p><strong>Calories:</strong> {{ food_item.calories }} kcal per serving</p>
+            {% endif %}
+
+            <!-- Description -->
+            <h6 class="mt-4">Description</h6>
+            <p>{{ food_item.description }}</p>
+
+            <!-- Ingredients -->
+            {% if food_item.ingredients %}
+                <h6>Ingredients</h6>
+                <p>{{ food_item.ingredients }}</p>
+            {% endif %}
+
+            <!-- Add to Cart Form -->
+            {% if food_item.is_available %}
+                {% if user.is_authenticated %}
+                    <form method="post" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex gap-3">
+                            <div style="width: 150px;">
+                                {{ form.quantity }}
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-cart-plus"></i> Add to Cart
+                            </button>
+                        </div>
+                    </form>
+                {% else %}
+                    <div class="alert alert-info mt-4">
+                        <a href="{% url 'canteen:login' %}" class="btn btn-primary">Login to add to cart</a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="alert alert-danger mt-4">
+                    This item is currently unavailable. Please check back later!
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <hr class="my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <h3 class="mb-4">Customer Reviews</h3>
+            
+            {% if reviews %}
+                {% for review in reviews %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title">{{ review.user.get_full_name|default:review.user.username }}</h5>
+                                    <div class="mb-2">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                                <i class="bi bi-star-fill text-warning"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-warning"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="card-text">{{ review.comment }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p class="text-muted">No reviews yet. Be the first to review this item!</p>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Share Your Experience</h5>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'canteen:add_review' food_item.slug %}" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-pencil-square"></i> Write a Review
+                        </a>
+                    {% else %}
+                        <p class="text-muted text-center">
+                            <a href="{% url 'canteen:login' %}" class="text-decoration-none">Login</a> to write a review
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Items -->
+    {% if related_items %}
+        <hr class="my-5">
+        <div class="row">
+            <div class="col-12 mb-4">
+                <h3>You might also like</h3>
+            </div>
+            {% for item in related_items %}
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" class="card-img-top" alt="{{ item.name }}" style="height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="bg-light d-flex align-items-center justify-content-center" style="height: 150px;">
+                                <i class="bi bi-image text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="card-body">
+                            <h6 class="card-title">{{ item.name }}</h6>
+                            <p class="text-primary fw-bold">₹{{ item.price }}</p>
+                            <a href="{% url 'canteen:food_detail' item.slug %}" class="btn btn-sm btn-primary w-100">View</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

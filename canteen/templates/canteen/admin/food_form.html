@@ -1,0 +1,198 @@
+{% extends 'canteen/base.html' %}
+
+{% block title %}{{ action }} Food Item - SmartCanteen{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="bi bi-pencil-square"></i> {{ action }} Food Item</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Basic Information -->
+                        <h6 class="mt-4 mb-3 text-primary">Basic Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Item Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description *</label>
+                            {{ form.description }}
+                            {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">{{ form.description.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Category *</label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.category.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Price (₹) *</label>
+                                {{ form.price }}
+                                {% if form.price.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.price.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Availability -->
+                        <h6 class="mt-4 mb-3 text-primary">Availability</h6>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Status *</label>
+                                {{ form.availability_status }}
+                                {% if form.availability_status.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.availability_status.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Quantity Available *</label>
+                                {{ form.quantity_available }}
+                                {% if form.quantity_available.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.quantity_available.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Nutritional Information -->
+                        <h6 class="mt-4 mb-3 text-primary">Nutritional Information</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Calories (per serving)</label>
+                            {{ form.calories }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ingredients</label>
+                            {{ form.ingredients }}
+                            <small class="form-text text-muted d-block">Comma-separated list of ingredients</small>
+                        </div>
+
+                        <!-- Dietary Information -->
+                        <h6 class="mt-4 mb-3 text-primary">Dietary Information</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.is_vegetarian }}
+                                    <label class="form-check-label" for="{{ form.is_vegetarian.id_for_label }}">
+                                        Vegetarian
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.is_vegan }}
+                                    <label class="form-check-label" for="{{ form.is_vegan.id_for_label }}">
+                                        Vegan
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    {{ form.is_gluten_free }}
+                                    <label class="form-check-label" for="{{ form.is_gluten_free.id_for_label }}">
+                                        Gluten-Free
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Image -->
+                        <h6 class="mt-4 mb-3 text-primary">Image</h6>
+                        <div class="mb-3">
+                            <label class="form-label">Upload Image</label>
+                            {{ form.image }}
+                            <small class="form-text text-muted d-block">Recommended size: 400x300px. Max size: 5MB</small>
+                            {% if form.image.errors %}
+                                <div class="invalid-feedback d-block">{{ form.image.errors }}</div>
+                            {% endif %}
+                            {% if food_item.image %}
+                                <div class="mt-2">
+                                    <p class="text-muted">Current image:</p>
+                                    <img src="{{ food_item.image.url }}" alt="{{ food_item.name }}" style="max-width: 200px; border-radius: 5px;">
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Or Image URL</label>
+                            {{ form.image_url }}
+                            <small class="form-text text-muted d-block">
+                                Paste a direct link to an image (jpg, png, webp, gif).
+                                Only used when no file is uploaded above.
+                            </small>
+                            {% if form.image_url.errors %}
+                                <div class="invalid-feedback d-block">{{ form.image_url.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- URL image preview -->
+                        <div id="url-preview-container" class="mb-4" style="display:none;">
+                            <p class="text-muted mb-1">URL preview:</p>
+                            <img id="url-preview-img" src="" alt="Preview" style="max-width: 200px; border-radius: 5px; border: 1px solid #dee2e6;">
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg flex-grow-1">
+                                <i class="bi bi-check-circle"></i> Save Item
+                            </button>
+                            <a href="{% url 'canteen:manage_items' %}" class="btn btn-outline-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const urlInput = document.getElementById('{{ form.image_url.id_for_label }}');
+    const previewContainer = document.getElementById('url-preview-container');
+    const previewImg = document.getElementById('url-preview-img');
+
+    if (!urlInput) return;
+
+    let debounce;
+    urlInput.addEventListener('input', function () {
+        clearTimeout(debounce);
+        debounce = setTimeout(function () {
+            const url = urlInput.value.trim();
+            if (url) {
+                previewImg.onload = function () {
+                    previewContainer.style.display = 'block';
+                };
+                previewImg.onerror = function () {
+                    previewContainer.style.display = 'none';
+                    previewImg.src = '';
+                };
+                previewImg.src = url;
+            } else {
+                previewContainer.style.display = 'none';
+                previewImg.src = '';
+            }
+        }, 600);
+    });
+})();
+</script>
+{% endblock %}

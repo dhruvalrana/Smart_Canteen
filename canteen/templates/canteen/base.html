@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SmartCanteen - Digital Food Ordering{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        * { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top premium-header shadow-lg smart-navbar">
+        <div class="container-lg">
+            <a class="navbar-brand fw-bold" href="{% url 'canteen:home' %}">
+                <div class="brand-logo-wrapper">
+                    <i class="bi bi-cup-hot"></i>
+                    <div>
+                        <span class="brand-main">SmartCanteen</span>
+                        <span class="brand-tagline">Order Fresh</span>
+                    </div>
+                </div>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="{% url 'canteen:home' %}">
+                            <i class="bi bi-house"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'canteen:food_list' %}">
+                            <i class="bi bi-shop"></i> Menu
+                        </a>
+                    </li>
+                    
+                    {% if user.is_authenticated %}
+                        <!-- Authenticated User Links -->
+                        <li class="nav-item">
+                            <a class="nav-link position-relative" href="{% url 'canteen:cart' %}">
+                                <i class="bi bi-cart3"></i> Cart
+                                {% if cart_count > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                        {{ cart_count }}
+                                    </span>
+                                {% endif %}
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'canteen:order_list' %}">
+                                <i class="bi bi-clock-history"></i> Orders
+                            </a>
+                        </li>
+                        
+                        {% if user.is_staff %}
+                            <!-- Admin Links -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-speedometer2"></i> Admin
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="adminDropdown">
+                                    <li><a class="dropdown-item" href="{% url 'canteen:admin_dashboard' %}"><i class="bi bi-bar-chart"></i> Dashboard</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'canteen:manage_items' %}"><i class="bi bi-list"></i> Manage Items</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'canteen:add_food_item' %}"><i class="bi bi-plus-circle"></i> Add Item</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'canteen:manage_orders' %}"><i class="bi bi-boxes"></i> Orders</a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle"></i> {{ user.first_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="{% url 'canteen:profile' %}"><i class="bi bi-person"></i> Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'canteen:logout' %}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <!-- Unauthenticated User Links -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'canteen:login' %}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-sm btn-danger text-white px-3" href="{% url 'canteen:register' %}">
+                                <i class="bi bi-person-plus"></i> Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Top Spacing for Fixed Header -->
+    <div style="height: 80px;"></div>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container-lg mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-{{ message.tags|default:'info' }}"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-5">
+        <div class="container-lg">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 style="color: #FF6B35;"><i class="bi bi-cup-hot"></i> SmartCanteen</h5>
+                    <p class="text-muted small">Digital Food Ordering & Management System for College Canteen</p>
+                    <div class="mt-3">
+                        <a href="https://www.facebook.com/" class="text-decoration-none text-muted me-3"><i class="bi bi-facebook"></i></a>
+                        <a href="https://www.twitter.com/" class="text-decoration-none text-muted me-3"><i class="bi bi-twitter"></i></a>
+                        <a href="https://www.instagram.com/" class="text-decoration-none text-muted"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6>Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'canteen:home' %}" class="text-decoration-none text-muted small">Home</a></li>
+                        <li><a href="{% url 'canteen:food_list' %}" class="text-decoration-none text-muted small">Menu</a></li>
+                        <li><a href="{% url 'canteen:order_list' %}" class="text-decoration-none text-muted small">My Orders</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6>Contact & Support</h6>
+                    <p class="text-muted small">
+                        <i class="bi bi-telephone"></i> +91 90853 82693<br>
+                        <i class="bi bi-envelope"></i> support@smartcanteen.local<br>
+                        <i class="bi bi-clock"></i> 10:00 AM - 8:00 PM
+                    </p>
+                </div>
+            </div>
+            <hr class="bg-secondary">
+            <div class="text-center text-muted">
+                <p class="small">&copy; 2024 SmartCanteen. All rights reserved. Made with <i class="bi bi-heart-fill" style="color: #FF6B35;"></i></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% load static %}
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
